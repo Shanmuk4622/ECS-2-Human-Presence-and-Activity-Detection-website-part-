@@ -1,0 +1,55 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+
+# Node / frontend tooling
+node_modules/
+dist/
+build/
+coverage/
+.npm/
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Test and report artifacts
+htmlcov/
+.tox/
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Generated media / analysis outputs
+output/
+exports/
+artifacts/
+*.csv
+*.npy
+*.npz
+*.pt
+*.pth
+
+# Keep source 3D assets under version control.
+# Do not ignore *.glb / *.step by default.

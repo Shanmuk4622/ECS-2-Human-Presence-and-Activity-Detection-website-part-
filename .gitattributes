@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+# Keep binary engineering assets untouched by text filters
+*.glb binary
+*.step binary
+*.pdf binary
