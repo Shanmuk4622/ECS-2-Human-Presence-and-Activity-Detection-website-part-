@@ -2,6 +2,18 @@
 
 A professional repository for the ECS-2 project: a Wi-Fi CSI based human presence and activity detection system with a 3D hardware showcase web interface.
 
+## Project Preview
+
+### Main Website
+
+![ECS Main View 1](images/image1.png)
+![ECS Main View 2](images/image2.png)
+
+### 3D Explorer
+
+![ECS 3D Explorer View 1](images/image3.png)
+![ECS 3D Explorer View 2](images/image4.png)
+
 ## What this repo contains
 
 - Interactive frontend:
