@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECS — Embedded Control Systems | Antigravity</title>
+  <meta name="description"
+    content="Next-generation Embedded Control Systems featuring real-time RF signal processing, advanced antenna design, and intelligent edge computing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-logo">
+      <div class="logo-icon"></div>
+      <span>ECS<span class="accent">·</span>PRO</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#product">Product</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="model-viewer.html" style="color:var(--cyan);position:relative;">3D Explorer<span
+            style="position:absolute;top:-4px;right:-20px;font-size:.55rem;background:var(--cyan);color:#000;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.5px;">NEW</span></a>
+      </li>
+    </ul>
+    <button id="login-btn" class="btn-outline" aria-label="Enter Dashboard">
+      <span class="btn-glow"></span>
+      Enter Dashboard
+    </button>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">Embedded Control Systems</div>
+      <h1 id="hero-title">ANTIGRAVITY<br><span class="accent-text">CONTROL</span></h1>
+      <p class="hero-sub" id="typed-target"></p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="document.getElementById('product').scrollIntoView({behavior:'smooth'})">
+          Explore System
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+        <a href="model-viewer.html" class="btn-3d-explorer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          View 3D Models
+        </a>
+        <button class="btn-ghost" id="hero-dashboard-btn">
+          <span class="pulse-dot"></span>
+          Live Dashboard
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-val" data-target="2400">0</span><span class="stat-unit">MHz</span><span
+            class="stat-label">RF Bandwidth</span></div>
+        <div class="stat-div"></div>
+        <div class="stat"><span class="stat-val" data-target="120">0</span><span class="stat-unit">fps</span><span
+            class="stat-label">Processing Rate</span></div>
+        <div class="stat-div"></div>
+        <div class="stat"><span class="stat-val" data-target="99">0</span><span class="stat-unit">%</span><span
+            class="stat-label">Signal Accuracy</span></div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- PRODUCT -->
+  <section id="product">
+    <div class="section-label">THE SYSTEM</div>
+    <div class="product-grid">
+      <div class="product-text" data-aos="fade-right">
+        <h2>Precision RF Signal<br><span class="gradient-text">Processing Unit</span></h2>
+        <p class="product-desc">
+          Our ECS platform is a cutting-edge embedded control system designed for real-time RF signal acquisition,
+          processing, and intelligent decision-making at the edge. Built around a custom antenna array and
+          high-performance SoC, it captures and analyses complex electromagnetic signals with sub-millisecond latency.
+        </p>
+        <p class="product-desc">
+          The system integrates seamlessly with cloud infrastructure to stream live sensor data, run on-device ML
+          inference, and deliver actionable insights — all in a compact, ruggedised form factor.
+        </p>
+        <div class="product-features">
+          <div class="feature-item">
+            <div class="feature-icon">&#9889;</div>
+            <div>
+              <strong>Real-time Processing</strong>
+              <p>Sub-millisecond edge inference with dedicated NPU acceleration</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">&#128225;</div>
+            <div>
+              <strong>Multi-band RF Capture</strong>
+              <p>Custom loop antenna design with wideband sensitivity from 300MHz to 2.7GHz</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">&#127758;</div>
+            <div>
+              <strong>Cloud-Connected</strong>
+              <p>Continuous image and data stream to web dashboard via secure WebSocket</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="product-visual" data-aos="fade-left">
+        <div class="product-card-3d" id="product-card">
+          <div class="card-inner">
+            <div class="rf-visual-container">
+              <canvas id="product-canvas"></canvas>
+              <div class="rf-label rf-label-left">
+                <div class="rf-tag">INCOMING COMPLEX RF</div>
+                <div class="rf-arrow">→</div>
+              </div>
+              <div class="rf-label rf-label-right">
+                <div class="rf-tag">RECEIVER / DEMODULATOR</div>
+              </div>
+              <div class="rf-label rf-label-center">
+                <div class="rf-dot"></div>
+                <div class="rf-tag-sm">SIGNAL CONVERGENCE<br>POINT</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <div class="section-label">HARDWARE</div>
+    <h2 class="section-title">System <span class="gradient-text">Components</span></h2>
+    <p class="section-sub">Every element engineered for precision, reliability, and performance</p>
+    <div class="components-grid">
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#00f5ff">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="8" width="32" height="32" rx="4" stroke="#00f5ff" stroke-width="2" />
+            <rect x="16" y="16" width="16" height="16" rx="2" fill="#00f5ff" fill-opacity="0.15" stroke="#00f5ff"
+              stroke-width="1.5" />
+            <line x1="8" y1="20" x2="2" y2="20" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="8" y1="28" x2="2" y2="28" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="40" y1="20" x2="46" y2="20" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="40" y1="28" x2="46" y2="28" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="20" y1="8" x2="20" y2="2" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="28" y1="8" x2="28" y2="2" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="20" y1="40" x2="20" y2="46" stroke="#00f5ff" stroke-width="1.5" />
+            <line x1="28" y1="40" x2="28" y2="46" stroke="#00f5ff" stroke-width="1.5" />
+          </svg>
+        </div>
+        <h3>System-on-Chip</h3>
+        <p>High-performance SoC with integrated NPU for on-device machine learning inference</p>
+        <div class="comp-spec">Raspberry Pi / Custom SoC</div>
+        <div class="comp-glow" style="--accent:#00f5ff"></div>
+      </div>
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#7c3aed">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="18" width="12" height="12" rx="2" stroke="#7c3aed" stroke-width="2" />
+            <rect x="30" y="18" width="12" height="12" rx="2" stroke="#7c3aed" stroke-width="2" />
+            <path d="M18 24h12" stroke="#7c3aed" stroke-width="2" />
+            <path d="M12 14 Q24 6 36 14" stroke="#7c3aed" stroke-width="1.5" fill="none" stroke-dasharray="3 2" />
+            <path d="M12 34 Q24 42 36 34" stroke="#7c3aed" stroke-width="1.5" fill="none" stroke-dasharray="3 2" />
+            <circle cx="24" cy="24" r="3" fill="#7c3aed" fill-opacity="0.3" stroke="#7c3aed" />
+          </svg>
+        </div>
+        <h3>Loop Antenna Array</h3>
+        <p>Custom-designed dual-loop antenna optimised for wideband RF field convergence and demodulation</p>
+        <div class="comp-spec">300MHz – 2.7GHz</div>
+        <div class="comp-glow" style="--accent:#7c3aed"></div>
+      </div>
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#f59e0b">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="14" y="8" width="20" height="32" rx="3" stroke="#f59e0b" stroke-width="2" />
+            <rect x="18" y="12" width="12" height="8" rx="1" fill="#f59e0b" fill-opacity="0.2" stroke="#f59e0b"
+              stroke-width="1.5" />
+            <circle cx="24" cy="30" r="3" fill="#f59e0b" fill-opacity="0.3" stroke="#f59e0b" />
+            <line x1="20" y1="34" x2="24" y2="34" stroke="#f59e0b" stroke-width="1.5" />
+            <line x1="24" y1="34" x2="28" y2="34" stroke="#f59e0b" stroke-width="1.5" />
+            <path d="M14 16H8M14 20H10M14 24H8" stroke="#f59e0b" stroke-width="1.5" />
+            <path d="M34 16H40M34 20H38M34 24H40" stroke="#f59e0b" stroke-width="1.5" />
+          </svg>
+        </div>
+        <h3>RF Front-End Module</h3>
+        <p>Low-noise amplifier and bandpass filter chain for clean signal acquisition before ADC conversion</p>
+        <div class="comp-spec">NF &lt; 2.5 dB</div>
+        <div class="comp-glow" style="--accent:#f59e0b"></div>
+      </div>
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#10b981">
+          <svg viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="14" stroke="#10b981" stroke-width="2" />
+            <circle cx="24" cy="24" r="6" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.5" />
+            <path d="M24 10v4M24 34v4M10 24h4M34 24h4" stroke="#10b981" stroke-width="2" />
+            <path d="M14.7 14.7l2.8 2.8M30.5 30.5l2.8 2.8M14.7 33.3l2.8-2.8M30.5 17.5l2.8-2.8" stroke="#10b981"
+              stroke-width="1.5" />
+          </svg>
+        </div>
+        <h3>IMU & Sensor Array</h3>
+        <p>9-DOF inertial measurement unit combined with environmental sensors for contextual data fusion</p>
+        <div class="comp-spec">±16g / 2000°/s</div>
+        <div class="comp-glow" style="--accent:#10b981"></div>
+      </div>
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#f43f5e">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="20" width="32" height="14" rx="3" stroke="#f43f5e" stroke-width="2" />
+            <rect x="12" y="24" width="8" height="6" rx="1" fill="#f43f5e" fill-opacity="0.3" />
+            <rect x="22" y="24" width="4" height="6" rx="1" fill="#f43f5e" fill-opacity="0.3" />
+            <rect x="28" y="24" width="8" height="6" rx="1" fill="#f43f5e" fill-opacity="0.3" />
+            <path d="M16 20v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" stroke="#f43f5e" stroke-width="2" />
+            <rect x="4" y="32" width="4" height="6" rx="1" stroke="#f43f5e" stroke-width="1.5" />
+            <rect x="40" y="32" width="4" height="6" rx="1" stroke="#f43f5e" stroke-width="1.5" />
+          </svg>
+        </div>
+        <h3>Power Management</h3>
+        <p>Multi-rail PMIC with dynamic voltage scaling, battery monitoring, and over-current protection</p>
+        <div class="comp-spec">5V / 3.3V / 1.8V</div>
+        <div class="comp-glow" style="--accent:#f43f5e"></div>
+      </div>
+
+      <div class="comp-card" data-tilt>
+        <div class="comp-icon-wrap" style="--accent:#06b6d4">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M8 16 Q24 8 40 16 Q24 24 8 32 Q24 40 40 32" stroke="#06b6d4" stroke-width="2" fill="none" />
+            <circle cx="8" cy="16" r="3" fill="#06b6d4" />
+            <circle cx="40" cy="32" r="3" fill="#06b6d4" />
+            <line x1="24" y1="8" x2="24" y2="14" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="2 2" />
+            <line x1="24" y1="34" x2="24" y2="40" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="2 2" />
+          </svg>
+        </div>
+        <h3>Communication Module</h3>
+        <p>Wi-Fi 6 + BLE 5.0 combo module enabling low-latency streaming to cloud dashboard</p>
+        <div class="comp-spec">Wi-Fi 6 / BLE 5.0</div>
+        <div class="comp-glow" style="--accent:#06b6d4"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div class="section-label">LIVE SYSTEM</div>
+    <h2 class="section-title">Hardware <span class="gradient-text">Dashboard</span></h2>
+    <div class="dashboard-header">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        LIVE FEED
+      </div>
+      <div class="dash-meta">Stream ID: ECS-7F3A · 23:21 UTC+5:30</div>
+      <button class="btn-outline-sm" id="dash-login-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10,17 15,12 10,7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        Authenticate
+      </button>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Live Feed -->
+      <div class="dash-panel feed-panel">
+        <div class="panel-header">
+          <span class="panel-label">CAMERA STREAM</span>
+          <span class="panel-badge">CH-01</span>
+        </div>
+        <div class="feed-viewer" id="feed-viewer">
+          <div class="feed-overlay"></div>
+          <div class="feed-scanline"></div>
+          <div class="feed-frames" id="feed-frames">
+            <div class="feed-frame active"
+              style="background: radial-gradient(ellipse at 40% 50%, #1a003a 0%, #050510 70%)">
+              <canvas class="frame-canvas" id="frame0"></canvas>
+              <div class="frame-hud">
+                <span>◉ REC</span><span>00:14:32</span>
+              </div>
+            </div>
+            <div class="feed-frame" style="background: radial-gradient(ellipse at 60% 40%, #003318 0%, #050510 70%)">
+              <canvas class="frame-canvas" id="frame1"></canvas>
+              <div class="frame-hud">
+                <span>◉ REC</span><span>00:14:33</span>
+              </div>
+            </div>
+            <div class="feed-frame" style="background: radial-gradient(ellipse at 50% 60%, #1a1a00 0%, #050510 70%)">
+              <canvas class="frame-canvas" id="frame2"></canvas>
+              <div class="frame-hud">
+                <span>◉ REC</span><span>00:14:34</span>
+              </div>
+            </div>
+          </div>
+          <div class="feed-corners">
+            <div class="fc tl"></div>
+            <div class="fc tr"></div>
+            <div class="fc bl"></div>
+            <div class="fc br"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Output -->
+      <div class="dash-panel output-panel">
+        <div class="panel-header">
+          <span class="panel-label">MODEL OUTPUT</span>
+          <span class="panel-badge">AI v2.1</span>
+        </div>
+        <div class="model-outputs">
+          <div class="output-item">
+            <div class="output-header">
+              <span class="output-class">RF_ANOMALY</span>
+              <span class="output-score" id="score0">94.2%</span>
+            </div>
+            <div class="output-bar-bg">
+              <div class="output-bar" id="bar0" style="width:94.2%;--c:#00f5ff"></div>
+            </div>
+          </div>
+          <div class="output-item">
+            <div class="output-header">
+              <span class="output-class">SIGNAL_LOCK</span>
+              <span class="output-score" id="score1">87.6%</span>
+            </div>
+            <div class="output-bar-bg">
+              <div class="output-bar" id="bar1" style="width:87.6%;--c:#7c3aed"></div>
+            </div>
+          </div>
+          <div class="output-item">
+            <div class="output-header">
+              <span class="output-class">INTERFERENCE</span>
+              <span class="output-score" id="score2">12.1%</span>
+            </div>
+            <div class="output-bar-bg">
+              <div class="output-bar" id="bar2" style="width:12.1%;--c:#f43f5e"></div>
+            </div>
+          </div>
+          <div class="output-item">
+            <div class="output-header">
+              <span class="output-class">CLEAR_CHANNEL</span>
+              <span class="output-score" id="score3">78.9%</span>
+            </div>
+            <div class="output-bar-bg">
+              <div class="output-bar" id="bar3" style="width:78.9%;--c:#10b981"></div>
+            </div>
+          </div>
+          <div class="output-item">
+            <div class="output-header">
+              <span class="output-class">MULTIPATH_FADE</span>
+              <span class="output-score" id="score4">45.3%</span>
+            </div>
+            <div class="output-bar-bg">
+              <div class="output-bar" id="bar4" style="width:45.3%;--c:#f59e0b"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry -->
+        <div class="telemetry-grid">
+          <div class="tele-item">
+            <div class="tele-label">RSSI</div>
+            <div class="tele-value" id="t-rssi">-72 dBm</div>
+          </div>
+          <div class="tele-item">
+            <div class="tele-label">SNR</div>
+            <div class="tele-value" id="t-snr">18.4 dB</div>
+          </div>
+          <div class="tele-item">
+            <div class="tele-label">FREQ</div>
+            <div class="tele-value" id="t-freq">2.437 GHz</div>
+          </div>
+          <div class="tele-item">
+            <div class="tele-label">PKT LOSS</div>
+            <div class="tele-value" id="t-pkt">0.3%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spectrum Panel -->
+      <div class="dash-panel spectrum-panel">
+        <div class="panel-header">
+          <span class="panel-label">SPECTRUM ANALYSER</span>
+          <span class="panel-badge">LIVE</span>
+        </div>
+        <canvas id="spectrum-canvas"></canvas>
+      </div>
+
+      <!-- System Status -->
+      <div class="dash-panel status-panel">
+        <div class="panel-header">
+          <span class="panel-label">SYSTEM STATUS</span>
+          <span class="panel-badge status-ok">NOMINAL</span>
+        </div>
+        <div class="status-list">
+          <div class="status-row"><span>RF Front-End</span><span class="status-badge ok">ONLINE</span></div>
+          <div class="status-row"><span>Signal Processor</span><span class="status-badge ok">ACTIVE</span></div>
+          <div class="status-row"><span>ML Inference</span><span class="status-badge ok">RUNNING</span></div>
+          <div class="status-row"><span>Cloud Stream</span><span class="status-badge ok">CONNECTED</span></div>
+          <div class="status-row"><span>Power Rail 3.3V</span><span class="status-badge ok">3.31V</span></div>
+          <div class="status-row"><span>Thermal</span><span class="status-badge warn">52°C</span></div>
+          <div class="status-row"><span>Storage</span><span class="status-badge ok">68% FREE</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">ECS<span class="accent">·</span>PRO</div>
+      <p class="footer-sub">Embedded Control Systems — Real-time RF Intelligence</p>
+      <p class="footer-copy">© 2026 Norse Engineering · All rights reserved</p>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div id="login-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Dashboard Login">
+    <div class="modal-panel">
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+      <div class="modal-logo">
+        <div class="modal-logo-icon"></div>
+        <span>ECS Dashboard</span>
+      </div>
+      <h3 class="modal-title">Authenticate</h3>
+      <p class="modal-sub">Access real-time hardware stream</p>
+      <form id="login-form" autocomplete="off">
+        <div class="form-group">
+          <label for="username">User ID</label>
+          <input type="text" id="username" placeholder="engineer@ecs.pro" />
+        </div>
+        <div class="form-group">
+          <label for="password">Access Key</label>
+          <input type="password" id="password" placeholder="••••••••••••" />
+        </div>
+        <button type="submit" class="btn-primary full" id="login-submit">
+          <span id="login-text">Access Dashboard</span>
+          <span id="login-loader" class="hidden">Authenticating…</span>
+        </button>
+        <div id="login-msg" class="login-msg hidden"></div>
+      </form>
+      <div class="modal-footer-note">Demo credentials: admin / ecs2026</div>
+    </div>
+  </div>
+
+  <!-- CDN Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

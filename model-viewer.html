@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECS — 3D Model Viewer</title>
+    <meta name="description"
+        content="Interactive 3D viewer for ECS hardware models — Antenna, Enclosure, and Full Assembly.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── Tokens ── */
+        :root {
+            --bg: #050510;
+            --bg-mid: #0a0a1f;
+            --cyan: #00f5ff;
+            --purple: #7c3aed;
+            --pink: #f43f5e;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --text: #f0f4ff;
+            --muted: rgba(240, 244, 255, 0.5);
+            --dim: rgba(240, 244, 255, 0.2);
+            --border: rgba(0, 245, 255, 0.12);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            cursor: none;
+        }
+
+        /* ── Cursor ── */
+        #cur {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: width .15s, height .15s;
+        }
+
+        #cur-r {
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(0, 245, 255, .35);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: transform .15s ease-out, width .25s, height .25s;
+        }
+
+        /* ── Layout ── */
+        #viewer-wrap {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Top bar ── */
+        #topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            background: linear-gradient(to bottom, rgba(5, 5, 16, .95) 60%, transparent);
+            pointer-events: none;
+        }
+
+        #topbar>* {
+            pointer-events: all;
+        }
+
+        .tb-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .tb-logo-icon {
+            width: 26px;
+            height: 26px;
+            border: 2px solid var(--cyan);
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .tb-logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            background: var(--cyan);
+            border-radius: 3px;
+            opacity: .4;
+        }
+
+        .tb-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .8rem;
+            font-weight: 500;
+            letter-spacing: .5px;
+            color: var(--muted);
+            background: rgba(5, 5, 16, .6);
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            cursor: none;
+            transition: border-color .2s, color .2s;
+        }
+
+        .tb-back:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .tb-back svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .tb-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .75rem;
+            letter-spacing: 3px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        /* ── 3D Canvas ── */
+        #three-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* ── Left panel: model selector ── */
+        #model-panel {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .model-btn {
+            width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(5, 5, 16, .75);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(16px);
+            cursor: none;
+            text-align: left;
+            transition: border-color .25s, box-shadow .25s, transform .2s;
+            font-family: inherit;
+        }
+
+        .model-btn:hover {
+            transform: translateX(4px);
+            border-color: rgba(0, 245, 255, .3);
+        }
+
+        .model-btn.active {
+            border-color: var(--cyan);
+            box-shadow: 0 0 24px rgba(0, 245, 255, .2);
+        }
+
+        .model-btn.active .mb-dot {
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .mb-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--dim);
+            flex-shrink: 0;
+            transition: background .25s, box-shadow .25s;
+        }
+
+        .mb-info {}
+
+        .mb-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: .5px;
+            color: var(--text);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .mb-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .6rem;
+            color: var(--muted);
+            display: block;
+        }
+
+        /* ── Bottom: info  + controls ── */
+        #info-bar {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: rgba(5, 5, 16, .8);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+        }
+
+        .ib-item {
+            padding: 14px 24px;
+            border-right: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .ib-item:last-child {
+            border-right: none;
+        }
+
+        .ib-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .58rem;
+            letter-spacing: 2px;
+            color: var(--muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .ib-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--cyan);
+        }
+
+        /* ── Right: controls hint ── */
+        #ctrl-hint {
+            position: absolute;
+            right: 24px;
+            bottom: 24px;
+            z-index: 100;
+            background: rgba(5, 5, 16, .75);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(16px);
+            padding: 14px 18px;
+        }
+
+        .ch-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .72rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .ch-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .ch-key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .65rem;
+            padding: 2px 7px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            background: rgba(255, 255, 255, .04);
+            white-space: nowrap;
+        }
+
+        /* ── Loading overlay ── */
+        #loading-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            transition: opacity .5s;
+        }
+
+        #loading-overlay.done {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .load-ring {
+            width: 56px;
+            height: 56px;
+            border: 2px solid var(--border);
+            border-top-color: var(--cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .load-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .9rem;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            margin-bottom: 4px;
+        }
+
+        .load-sub {
+            font-size: .75rem;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .load-bar-bg {
+            width: 200px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .load-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--cyan);
+            border-radius: 1px;
+            transition: width .3s;
+        }
+
+        /* ── Wireframe toggle ── */
+        #wf-btn {
+            position: absolute;
+            right: 24px;
+            top: 80px;
+            z-index: 100;
+            padding: 9px 16px;
+            background: rgba(5, 5, 16, .75);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            backdrop-filter: blur(16px);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .65rem;
+            letter-spacing: 1px;
+            color: var(--muted);
+            cursor: none;
+            text-transform: uppercase;
+            transition: border-color .2s, color .2s;
+        }
+
+        #wf-btn:hover,
+        #wf-btn.on {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        #explode-btn {
+            position: absolute;
+            right: 24px;
+            top: 124px;
+            z-index: 100;
+            padding: 9px 16px;
+            background: rgba(5, 5, 16, .75);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            backdrop-filter: blur(16px);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .65rem;
+            letter-spacing: 1px;
+            color: var(--muted);
+            cursor: none;
+            text-transform: uppercase;
+            transition: border-color .2s, color .2s;
+        }
+
+        #explode-btn:hover,
+        #explode-btn.on {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        /* ── Particle field overlay (bg) ── */
+        #bg-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--purple);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="cur"></div>
+    <div id="cur-r"></div>
+
+    <div id="viewer-wrap">
+
+        <!-- Background particle canvas -->
+        <canvas id="bg-canvas"></canvas>
+
+        <!-- Top bar -->
+        <div id="topbar">
+            <a href="index.html" class="tb-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back to Site
+            </a>
+            <div class="tb-title">3D Hardware Explorer</div>
+            <div class="tb-logo">
+                <div class="tb-logo-icon"></div>
+                ECS<span style="color:var(--cyan)">·</span>PRO
+            </div>
+        </div>
+
+        <!-- 3D Canvas -->
+        <canvas id="three-canvas"></canvas>
+
+        <!-- Wireframe Toggle -->
+        <button id="wf-btn">⬡ Wireframe</button>
+        <button id="explode-btn">⊕ Explode</button>
+
+        <!-- Model panel -->
+        <div id="model-panel">
+            <div class="model-panel-label"
+                style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);margin-bottom:4px;padding-left:4px;">
+                SELECT MODEL</div>
+
+            <button class="model-btn active" data-model="one1.glb" data-name="Full Assembly" data-file="one1.glb"
+                data-size="1.6MB">
+                <div class="mb-dot"></div>
+                <div class="mb-info">
+                    <span class="mb-name">Full Assembly</span>
+                    <span class="mb-sub">one1.glb · 1.6MB</span>
+                </div>
+            </button>
+
+            <button class="model-btn" data-model="Antenna_ver_1-Body.glb" data-name="Antenna v1"
+                data-file="Antenna_ver_1-Body.glb" data-size="17KB">
+                <div class="mb-dot"></div>
+                <div class="mb-info">
+                    <span class="mb-name">Antenna v1</span>
+                    <span class="mb-sub">Antenna_ver_1-Body.glb · 17KB</span>
+                </div>
+            </button>
+
+            <button class="model-btn" data-model="box-ver_1-Body.glb" data-name="Enclosure Box"
+                data-file="box-ver_1-Body.glb" data-size="61KB">
+                <div class="mb-dot"></div>
+                <div class="mb-info">
+                    <span class="mb-name">Enclosure Box</span>
+                    <span class="mb-sub">box-ver_1-Body.glb · 61KB</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Bottom info bar -->
+        <div id="info-bar">
+            <div class="ib-item">
+                <span class="ib-label">Model</span>
+                <span class="ib-val" id="ib-name">Full Assembly</span>
+            </div>
+            <div class="ib-item">
+                <span class="ib-label">Polygons</span>
+                <span class="ib-val" id="ib-polys">—</span>
+            </div>
+            <div class="ib-item">
+                <span class="ib-label">Materials</span>
+                <span class="ib-val" id="ib-mats">—</span>
+            </div>
+            <div class="ib-item">
+                <span class="ib-label">Size</span>
+                <span class="ib-val" id="ib-size">1.6MB</span>
+            </div>
+        </div>
+
+        <!-- Controls hint -->
+        <div id="ctrl-hint">
+            <div class="ch-row"><span class="ch-key">Drag</span><span>Orbit</span></div>
+            <div class="ch-row"><span class="ch-key">Scroll</span><span>Zoom</span></div>
+            <div class="ch-row"><span class="ch-key">Right-drag</span><span>Pan</span></div>
+            <div class="ch-row"><span class="ch-key">R</span><span>Reset camera</span></div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loading-overlay">
+            <div class="load-ring"></div>
+            <div class="load-title">LOADING MODEL</div>
+            <div class="load-sub" id="load-sub">Initialising renderer…</div>
+            <div class="load-bar-bg">
+                <div class="load-bar" id="load-bar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Three.js r128 + addons via importmap-compatible CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+    <script>
+        'use strict';
+
+        /* ── Cursor ── */
+        const cur = document.getElementById('cur'), curR = document.getElementById('cur-r');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+        document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+        (function tick() {
+            rx += (mx - rx) * .14; ry += (my - ry) * .14;
+            cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+            curR.style.left = rx + 'px'; curR.style.top = ry + 'px';
+            requestAnimationFrame(tick);
+        })();
+        document.querySelectorAll('a,button').forEach(el => {
+            el.addEventListener('mouseenter', () => { cur.style.width = '20px'; cur.style.height = '20px'; });
+            el.addEventListener('mouseleave', () => { cur.style.width = '10px'; cur.style.height = '10px'; });
+        });
+
+        /* ── Background particle canvas ── */
+        (function bgParticles() {
+            const c = document.getElementById('bg-canvas');
+            c.width = window.innerWidth; c.height = window.innerHeight;
+            const ctx = c.getContext('2d');
+            const pts = Array.from({ length: 120 }, () => ({
+                x: Math.random() * c.width, y: Math.random() * c.height,
+                vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25,
+                r: Math.random() * 1.5 + .3, a: Math.random() * .4 + .05,
+                hue: 180 + Math.random() * 80
+            }));
+            window.addEventListener('resize', () => { c.width = window.innerWidth; c.height = window.innerHeight; });
+            function draw() {
+                ctx.clearRect(0, 0, c.width, c.height);
+                pts.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0) p.x = c.width; if (p.x > c.width) p.x = 0;
+                    if (p.y < 0) p.y = c.height; if (p.y > c.height) p.y = 0;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${p.hue},100%,70%,${p.a})`;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        /* ─────────────────────────────────────────────
+           THREE.JS VIEWER
+           ───────────────────────────────────────────── */
+        const canvas3 = document.getElementById('three-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.setClearColor(0x000000, 0);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
+        camera.position.set(5, 3, 8);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.minDistance = 0.2;
+        controls.maxDistance = 800;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.6;
+
+        /* ── Lighting ── */
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambient);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        sunLight.position.set(8, 12, 6);
+        sunLight.castShadow = true;
+        scene.add(sunLight);
+
+        const fillLight = new THREE.DirectionalLight(0x00f5ff, 0.5);
+        fillLight.position.set(-6, 2, -4);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0x7c3aed, 0.4);
+        rimLight.position.set(2, -4, -6);
+        scene.add(rimLight);
+
+        // Ground grid
+        const gridHelper = new THREE.GridHelper(20, 30, 0x00f5ff, 0x00f5ff);
+        gridHelper.material.opacity = 0.06;
+        gridHelper.material.transparent = true;
+        scene.add(gridHelper);
+
+        // Floor plane (receives shadows)
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(40, 40),
+            new THREE.ShadowMaterial({ opacity: 0.25 })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -0.01;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        /* ── State ── */
+        let currentModel = null;
+        let wireframeOn = false;
+        let explodeOn = false;
+        let originalPositions = [];
+
+        const loader = new THREE.GLTFLoader();
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadSub = document.getElementById('load-sub');
+        const loadBar = document.getElementById('load-bar');
+
+        function setLoadProgress(pct, msg) {
+            loadBar.style.width = pct + '%';
+            if (msg) loadSub.textContent = msg;
+        }
+
+        function fitCameraToObject(object) {
+            const box = new THREE.Box3().setFromObject(object);
+            const sphere = new THREE.Sphere();
+            box.getBoundingSphere(sphere);
+            
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            
+            const fov = camera.fov * (Math.PI / 180);
+            // Calculate distance based on model size and FOV
+            let camDist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+            
+            // Limit minimum distance to something reasonable
+            camDist = Math.max(camDist, 0.5);
+
+            // Centre model at origin
+            object.position.sub(center);
+            
+            // Adjust zoom limits based on model size
+            controls.minDistance = sphere.radius * 0.2;
+            controls.maxDistance = sphere.radius * 10;
+            
+            // Lift to sit on grid
+            const newBox = new THREE.Box3().setFromObject(object);
+            object.position.y -= newBox.min.y;
+
+            // Animate camera to a nice 45-degree angle view
+            gsap.to(camera.position, {
+                x: camDist, y: camDist * 0.8, z: camDist,
+                duration: 1.5, ease: 'power3.inOut',
+                onUpdate: () => { 
+                    controls.target.set(0, size.y / 2, 0); 
+                    camera.lookAt(0, size.y / 2, 0); 
+                }
+            });
+            
+            controls.target.set(0, size.y / 2, 0);
+            gridHelper.position.y = 0;
+            floor.position.y = -0.01;
+            
+            // Store reference sizing for reset
+            window.lastCamDist = camDist;
+            window.lastSizeY = size.y;
+        }
+
+        function applyWireframe(obj, state) {
+            obj.traverse(child => {
+                if (child.isMesh) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(m => { m.wireframe = state; });
+                    } else {
+                        child.material.wireframe = state;
+                    }
+                }
+            });
+        }
+
+        function storeOriginalPositions(obj) {
+            originalPositions = [];
+            obj.traverse(child => {
+                if (child.isMesh) {
+                    originalPositions.push({ mesh: child, pos: child.position.clone() });
+                }
+            });
+        }
+
+        function doExplode(obj, state) {
+            if (!originalPositions.length) return;
+            const radius = state ? 1.2 : 0;
+            originalPositions.forEach((entry, i) => {
+                const dir = entry.pos.clone().normalize();
+                if (dir.length() < 0.01) dir.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).normalize();
+                const target = entry.pos.clone().add(dir.multiplyScalar(radius * (i % 3 + 1) * 0.3));
+                gsap.to(entry.mesh.position, { x: target.x, y: target.y, z: target.z, duration: 0.9, ease: 'power3.out' });
+            });
+        }
+
+        function loadModel(file, displayName, sizeStr) {
+            // Show overlay
+            loadingOverlay.classList.remove('done');
+            setLoadProgress(0, 'Fetching ' + file + '…');
+
+            // Remove old model
+            if (currentModel) { scene.remove(currentModel); currentModel = null; originalPositions = []; }
+            wireframeOn = false; explodeOn = false;
+            document.getElementById('wf-btn').classList.remove('on');
+            document.getElementById('explode-btn').classList.remove('on');
+
+            // Update info bar
+            document.getElementById('ib-name').textContent = displayName;
+            document.getElementById('ib-size').textContent = sizeStr;
+            document.getElementById('ib-polys').textContent = '…';
+            document.getElementById('ib-mats').textContent = '…';
+
+            loader.load(
+                file,
+                (gltf) => {
+                    setLoadProgress(95, 'Processing mesh…');
+                    const model = gltf.scene;
+
+                    // Count geometry info
+                    let polyCount = 0, matSet = new Set();
+                    model.traverse(child => {
+                        if (child.isMesh) {
+                            const geo = child.geometry;
+                            if (geo.index) polyCount += geo.index.count / 3;
+                            else polyCount += geo.attributes.position.count / 3;
+                            const mats = Array.isArray(child.material) ? child.material : [child.material];
+                            mats.forEach(m => matSet.add(m.uuid));
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    scene.add(model);
+                    currentModel = model;
+                    fitCameraToObject(model);
+                    storeOriginalPositions(model);
+
+                    document.getElementById('ib-polys').textContent = (polyCount / 1000).toFixed(1) + 'K';
+                    document.getElementById('ib-mats').textContent = matSet.size;
+
+                    setLoadProgress(100, 'Done');
+                    setTimeout(() => loadingOverlay.classList.add('done'), 400);
+                },
+                (xhr) => {
+                    const pct = xhr.lengthComputable ? (xhr.loaded / xhr.total) * 90 : 30;
+                    setLoadProgress(pct, 'Loading… ' + Math.round(pct) + '%');
+                },
+                (err) => {
+                    setLoadProgress(100, '⚠ Error loading model');
+                    console.error('GLTFLoader error:', err);
+                    document.getElementById('ib-polys').textContent = 'ERR';
+                    setTimeout(() => loadingOverlay.classList.add('done'), 800);
+                }
+            );
+        }
+
+        /* ── Model buttons ── */
+        document.querySelectorAll('.model-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                loadModel(
+                    btn.dataset.file,
+                    btn.dataset.name,
+                    btn.dataset.size
+                );
+            });
+        });
+
+        /* ── Wireframe toggle ── */
+        document.getElementById('wf-btn').addEventListener('click', () => {
+            wireframeOn = !wireframeOn;
+            document.getElementById('wf-btn').classList.toggle('on', wireframeOn);
+            if (currentModel) applyWireframe(currentModel, wireframeOn);
+        });
+
+        /* ── Explode toggle ── */
+        document.getElementById('explode-btn').addEventListener('click', () => {
+            explodeOn = !explodeOn;
+            document.getElementById('explode-btn').classList.toggle('on', explodeOn);
+            if (currentModel) doExplode(currentModel, explodeOn);
+        });
+
+        /* ── Keyboard ── */
+        document.addEventListener('keydown', e => {
+            if (e.key === 'r' || e.key === 'R') {
+                const d = window.lastCamDist || 5;
+                const sy = window.lastSizeY || 0;
+                gsap.to(camera.position, { x: d, y: d * 0.8, z: d, duration: 1, ease: 'power3.out' });
+                controls.target.set(0, sy / 2, 0);
+            }
+        });
+
+        /* ── Resize ── */
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        /* ── Animate ── */
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            // Subtle light animation
+            const t = clock.getElapsedTime();
+            fillLight.intensity = 0.4 + Math.sin(t * 0.7) * 0.15;
+            rimLight.intensity = 0.3 + Math.cos(t * 0.5) * 0.12;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        /* ── Initial load ── */
+        loadModel('one1.glb', 'Full Assembly', '1.6MB');
+    </script>
+</body>
+
+</html>
