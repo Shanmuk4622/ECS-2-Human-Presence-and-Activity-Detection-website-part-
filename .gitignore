@@ -51,5 +51,7 @@ artifacts/
 *.pt
 *.pth
 
+*.step by default.
+
 # Keep source 3D assets under version control.
-# Do not ignore *.glb / *.step by default.
+# Do not ignore *.glb / 
